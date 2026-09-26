@@ -36,3 +36,21 @@
   Se formularon pruebas con `information_schema.tables` y casos de prueba negativos intencionales (intentar registrar precios negativos, fechas con salida menor que entrada, correos duplicados y llaves foráneas inválidas) para asegurar que PostgreSQL detenga los datos no válidos.
 * **Comentario reflexivo:**  
   Separar DDL y Constraints permite mayor mantenibilidad y facilita la portabilidad tanto en local como en Amazon RDS. Nombrar explícitamente las restricciones facilita la lectura de errores durante depuración.
+
+---
+
+## Entrada 03 — Validación de Suite de Pruebas y Manejo de `restrict_violation`
+
+* **Fecha:** 2026-09-26
+* **Etapa:** Etapa 10 — Pruebas Formales de Integridad (`sql/07_tests.sql`).
+* **Pregunta / Prompt del usuario:**
+  > Captura de pantalla mostrando que las pruebas T03 a T08 pasaron con éxito, pero la prueba T09 arrojó un error no capturado: `ERROR: update or delete on table "clientes" violates RESTRICT setting of foreign key constraint "fk_reservaciones_cliente" on table "reservaciones" SQL state: 23001`.
+* **Respuesta / Propuesta técnica:**  
+  Se explicó que el comportamiento del motor fue 100% correcto (impidió el borrado del cliente con historial para proteger la integridad referencial). Sin embargo, en PL/pgSQL, `WHEN foreign_key_violation` únicamente captura el código estándar 23503; cuando interviene la cláusula específica `ON DELETE RESTRICT`, PostgreSQL eleva el código SQLSTATE 23001 (`restrict_violation`).
+* **Qué se modificó / creó:**  
+  Se actualizó el bloque `EXCEPTION` de la prueba T09 en `sql/07_tests.sql` a `WHEN restrict_violation OR foreign_key_violation THEN` y se añadió una sentencia de limpieza inicial en T01 para garantizar idempotencia en re-ejecuciones continuas.
+* **Cómo se verificó:**  
+  Re-ejecución del script en PostgreSQL para comprobar que ahora imprime `NOTICE: ÉXITO T09` y procede limpiamente con la ejecución de los casos de traslape del Bloque 4.
+* **Comentario reflexivo:**  
+  Comprobar el código de estado SQL (`SQL state: 23001`) demuestra la importancia de validar el comportamiento real del motor frente a las especificaciones teóricas de excepciones en PL/pgSQL.
+
