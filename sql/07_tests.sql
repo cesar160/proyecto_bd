@@ -11,6 +11,10 @@
 -- BLOQUE 1: PRUEBAS POSITIVAS (Operaciones Válidas)
 -- ============================================================================
 
+-- Limpieza previa para permitir re-ejecución idempotente de la suite de pruebas
+DELETE FROM reservaciones WHERE id_cliente IN (SELECT id_cliente FROM clientes WHERE correo = 'huesped.valido@test.com');
+DELETE FROM clientes WHERE correo = 'huesped.valido@test.com';
+
 -- T01: Inserción de cliente válido
 INSERT INTO clientes (nombre, apellido, correo, telefono)
 VALUES ('Huésped', 'Válido', 'huesped.valido@test.com', '5511002200');
@@ -121,12 +125,13 @@ END $$;
 -- ============================================================================
 
 -- T09 [RECHAZO]: Intento de borrar cliente con historial de reservaciones
+-- NOTA: Al violar ON DELETE RESTRICT, PostgreSQL lanza SQLSTATE 23001 (restrict_violation)
 DO $$
 BEGIN
     DELETE FROM clientes WHERE id_cliente = 1;
     RAISE EXCEPTION 'FALLO DE PRUEBA: No debe permitirse borrar un cliente con reservaciones históricas.';
 EXCEPTION
-    WHEN foreign_key_violation THEN
+    WHEN restrict_violation OR foreign_key_violation THEN
         RAISE NOTICE 'ÉXITO T09: Protección referencial RESTRICT protegió el historial del cliente.';
 END $$;
 
