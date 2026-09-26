@@ -52,11 +52,10 @@ CREATE INDEX IF NOT EXISTS idx_reservaciones_fechas_estado
 
 
 -- ============================================================================
--- PROTOCOLO DE EVALUACIÓN DE RENDIMIENTO (EXPLAIN ANALYZE)
+-- 3. EVALUACIÓN DE RENDIMIENTO CON EXPLAIN ANALYZE
 -- ============================================================================
-/*
-PASO A: Consulta sin índice (o antes de crear idx_reservaciones_fechas_estado)
-Ejecutar en DBeaver:
+-- La siguiente consulta evalúa el plan de ejecución utilizando el índice compuesto
+-- idx_reservaciones_fechas_estado para la búsqueda de rangos de fechas:
 
 EXPLAIN ANALYZE
 SELECT r.id_reservacion, r.fecha_entrada, r.fecha_salida
@@ -65,23 +64,3 @@ WHERE r.estado IN ('CONFIRMADA', 'EN_CURSO')
   AND r.fecha_entrada < '2026-11-14' 
   AND r.fecha_salida > '2026-11-10';
 
-Registrar:
-- Tipo de escaneo: Seq Scan (Escaneo secuencial completo de la tabla)
-- Costo y tiempo de ejecución (Execution Time en ms)
-
----
-
-PASO B: Consulta con índice activo
-Ejecutar tras crear el índice:
-
-EXPLAIN ANALYZE
-SELECT r.id_reservacion, r.fecha_entrada, r.fecha_salida
-FROM reservaciones r
-WHERE r.estado IN ('CONFIRMADA', 'EN_CURSO')
-  AND r.fecha_entrada < '2026-11-14' 
-  AND r.fecha_salida > '2026-11-10';
-
-Registrar:
-- Tipo de escaneo: Index Scan o Bitmap Index Scan
-- Reducción del tiempo de respuesta y de buffers procesados
-*/
