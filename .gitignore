@@ -1,0 +1,25 @@
+# Archivos de entorno y credenciales (Seguridad AWS y local)
+.env
+.env.*
+*.pem
+*.key
+credentials.txt
+passwords.txt
+
+# DBeaver y configuraciones de IDE
+.dbeaver/
+.project
+.settings/
+.vscode/
+.idea/
+
+# Respaldos y dumps de bases de datos
+*.dump
+*.backup
+*.sql.bak
+*.log
+
+# Archivos del sistema operativo
+Thumbs.db
+Desktop.ini
+.DS_Store
